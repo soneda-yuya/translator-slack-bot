@@ -1,0 +1,26 @@
+name: "Translator Terraform Apply"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "デプロイする環境"
+        required: true
+        type: environment
+
+jobs:
+  plan:
+    name: "Run Terraform Apply"
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: "ubuntu-latest"
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/apply
+        with:
+          aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+          service: translator
+          env: ${{ github.event.inputs.environment }}
+          admin-github-access-token: ${{ secrets.ADMIN_GITHUB_ACCESS_TOKEN }}

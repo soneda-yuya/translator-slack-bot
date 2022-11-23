@@ -1,0 +1,24 @@
+name: "Translator Terraform Plan"
+
+on:
+  pull_request:
+
+jobs:
+  plan:
+    name: "Run Terraform Plan"
+    strategy:
+      matrix:
+        env: [ stage ]
+    environment: ${{ matrix.env }}
+    runs-on: "ubuntu-latest"
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/plan
+        with:
+          aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
+          service: translator
+          env: ${{ matrix.env }}
+          admin-github-access-token: ${{ secrets.ADMIN_GITHUB_ACCESS_TOKEN }}

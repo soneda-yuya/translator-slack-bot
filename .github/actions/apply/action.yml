@@ -1,0 +1,52 @@
+name: Terraform Plan Action
+
+inputs:
+  env:
+    description: "env"
+    required: true
+  service:
+    description: "terraform service"
+    required: true
+  aws-account-id:
+    description: "aws account id"
+    required: true
+  admin-github-access-token:
+    description: "admin github access token"
+    required: false
+
+description: "deploy"
+
+runs:
+  using: composite
+  steps:
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/GithubActionsForSlackbot
+        aws-region: ap-northeast-1
+        role-duration-seconds: 1200
+        role-session-name: myRecruiterSlackBotTerraform
+    - name: Terraform init
+      shell: bash
+      run: |
+        make ${{ inputs.env }}/${{ inputs.service }}/init
+    - name: Terraform validate
+      shell: bash
+      run: |
+        make ${{ inputs.env }}/${{ inputs.service }}/validate
+    - name: Setup tfcmt
+      id: setup-tfcmt
+      shell: bash
+      run: |
+        sudo curl -fL -o tfcmt.tar.gz https://github.com/suzuki-shunsuke/tfcmt/releases/download/$TFCMT_VERSION/tfcmt_linux_amd64.tar.gz
+        sudo tar -C /usr/bin -xzf ./tfcmt.tar.gz
+      env:
+        TFCMT_VERSION: v4.0.0
+    - name: Terraform plan
+      id: tfcmtzz
+      shell: bash
+      run: |
+        tfcmt apply -- make ${{ inputs.env }}/${{ inputs.service }}/apply OPT=-auto-approve
+      env:
+        GITHUB_TOKEN: ${{ inputs.admin-github-access-token }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PR_NUMBER: ${{ github.event.number }}

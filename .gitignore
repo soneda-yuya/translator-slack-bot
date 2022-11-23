@@ -1,0 +1,17 @@
+.git
+.idea
+.vscode
+.envrc
+*.zip
+
+tmp
+
+_vendor/bin/*
+!.gitkeep
+
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+.terraform.lock.hcl
